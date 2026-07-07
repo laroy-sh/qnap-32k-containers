@@ -134,4 +134,5 @@ Images are rebuilt **weekly** in CI against upstream `:latest` (plus on every pu
 
 - Repo contents: MIT. The published images bundle unmodified upstream software under their own licenses: [Pi-hole](https://github.com/pi-hole/pi-hole) (EUPL-1.2; *Pi-hole is a registered trademark of Pi-hole LLC — this project is not affiliated with or endorsed by Pi-hole*), [Syncthing](https://github.com/syncthing/syncthing) (MPL-2.0), nginx (BSD-2-Clause).
 - [javiocu/pihole-qnap-32k](https://github.com/javiocu/pihole-qnap-32k) — prior art that identified the 32K page-size root cause for Pi-hole v6 on these devices.
+- [albertogeniola/homeassistant-qnap-32k](https://hub.docker.com/r/albertogeniola/homeassistant-qnap-32k) — Home Assistant fixed for the same 32K-page QNAP family; use it if you need HA on these devices.
 - QNAP's [container debugging KB article](https://www.qnap.com/en/how-to/tutorial/article/how-to-debug-and-fix-common-container-issues-in-container-station) documenting the 4K→32K page change.
