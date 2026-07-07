@@ -5,6 +5,7 @@
 ```
 docker pull ghcr.io/laroy-sh/pihole-qnap:latest      # Pi-hole v6, works on TS-x31P3
 docker pull ghcr.io/laroy-sh/syncthing-qnap:latest   # Syncthing, works on TS-x31P3
+docker pull ghcr.io/laroy-sh/ladder-qnap:latest      # ladder paywall proxy, works on TS-x31P3
 ```
 
 ## The problem
@@ -94,6 +95,17 @@ docker run -d --name syncthing \
 
 Web UI: `http://<nas-ip>:8384`.
 
+### Ladder — `ghcr.io/laroy-sh/ladder-qnap`
+
+[everywall/ladder](https://github.com/everywall/ladder), a selfhosted 1ft.io/12ft.io-style proxy for reading articles behind soft paywalls. Upstream publishes **no `linux/arm/v7` image at all**, so this one is built from source: the static Go binary (page-size-agnostic) on `ubuntu:22.04`, with the upstream `rulesets/` directory baked in (`RULESET=/app/rulesets`).
+
+```bash
+docker run -d --name ladder -p 8081:8080 --restart unless-stopped \
+  ghcr.io/laroy-sh/ladder-qnap:latest
+```
+
+Open `http://<nas-ip>:8081` and paste an article URL, or prefix directly: `http://<nas-ip>:8081/https://<article-url>`. All upstream env vars work (`PORT`, `RULESET`, `USERPASS`, `ALLOWED_DOMAINS`, …). Note: the optional FlareSolverr companion (Cloudflare bypass) is amd64/arm64-only and cannot run on these devices — point `FLARESOLVERR_HOST` at another machine if you need it.
+
 ### Static web base — `ghcr.io/laroy-sh/qnap-web-base`
 
 `ubuntu:22.04` + nginx-light. For instantly serving static sites from the NAS:
@@ -132,7 +144,7 @@ Images are rebuilt **weekly** in CI against upstream `:latest` (plus on every pu
 
 ## Credits & licenses
 
-- Repo contents: MIT. The published images bundle unmodified upstream software under their own licenses: [Pi-hole](https://github.com/pi-hole/pi-hole) (EUPL-1.2; *Pi-hole is a registered trademark of Pi-hole LLC — this project is not affiliated with or endorsed by Pi-hole*), [Syncthing](https://github.com/syncthing/syncthing) (MPL-2.0), nginx (BSD-2-Clause).
+- Repo contents: MIT. The published images bundle unmodified upstream software under their own licenses: [Pi-hole](https://github.com/pi-hole/pi-hole) (EUPL-1.2; *Pi-hole is a registered trademark of Pi-hole LLC — this project is not affiliated with or endorsed by Pi-hole*), [Syncthing](https://github.com/syncthing/syncthing) (MPL-2.0), [ladder](https://github.com/everywall/ladder) (GPL-3.0, built from unmodified source), nginx (BSD-2-Clause).
 - [javiocu/pihole-qnap-32k](https://github.com/javiocu/pihole-qnap-32k) — prior art that identified the 32K page-size root cause for Pi-hole v6 on these devices.
 - [albertogeniola/homeassistant-qnap-32k](https://hub.docker.com/r/albertogeniola/homeassistant-qnap-32k) — Home Assistant fixed for the same 32K-page QNAP family; use it if you need HA on these devices.
 - QNAP's [container debugging KB article](https://www.qnap.com/en/how-to/tutorial/article/how-to-debug-and-fix-common-container-issues-in-container-station) documenting the 4K→32K page change.

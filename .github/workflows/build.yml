@@ -28,6 +28,9 @@ jobs:
           - image: web-base
             ghcr_name: qnap-web-base
             version_from: ''
+          - image: ladder-qnap
+            ghcr_name: ladder-qnap
+            version_from: ''   # upstream has no arm/v7 image to read a version label from
     steps:
       - uses: actions/checkout@v4
 
