@@ -1,0 +1,67 @@
+name: build-and-publish
+
+on:
+  push:
+    branches: [main]
+    paths: ['images/**', '.github/workflows/build.yml']
+  schedule:
+    - cron: '17 4 * * 1'   # weekly: track upstream :latest releases
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: pihole-qnap
+            ghcr_name: pihole-qnap
+            version_from: pihole/pihole:latest
+          - image: syncthing-qnap
+            ghcr_name: syncthing-qnap
+            version_from: syncthing/syncthing:latest
+          - image: web-base
+            ghcr_name: qnap-web-base
+            version_from: ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve upstream version for the tag
+        id: ver
+        run: |
+          VERSION=""
+          if [ -n "${{ matrix.version_from }}" ]; then
+            docker pull --platform linux/arm/v7 "${{ matrix.version_from }}" >/dev/null
+            VERSION=$(docker image inspect "${{ matrix.version_from }}" \
+              --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' 2>/dev/null || true)
+          fi
+          [ -n "$VERSION" ] || VERSION=$(date +%Y.%m.%d)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push (linux/arm/v7)
+        uses: docker/build-push-action@v6
+        with:
+          context: images/${{ matrix.image }}
+          platforms: linux/arm/v7
+          pull: true
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.ghcr_name }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.ghcr_name }}:${{ steps.ver.outputs.version }}
