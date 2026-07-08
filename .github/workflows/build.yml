@@ -34,6 +34,9 @@ jobs:
           - image: stirling-qnap
             ghcr_name: stirling-qnap
             version_from: ''   # release pinned in the Dockerfile (last Java-17 target, see comments there)
+          - image: vaultwarden-qnap
+            ghcr_name: vaultwarden-qnap
+            version_from: ''   # release pinned via VW_VERSION in the Dockerfile (built from source)
     steps:
       - uses: actions/checkout@v4
 

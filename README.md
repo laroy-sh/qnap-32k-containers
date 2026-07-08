@@ -7,6 +7,7 @@ docker pull ghcr.io/laroy-sh/pihole-qnap:latest      # Pi-hole v6, works on TS-x
 docker pull ghcr.io/laroy-sh/syncthing-qnap:latest   # Syncthing, works on TS-x31P3
 docker pull ghcr.io/laroy-sh/ladder-qnap:latest      # ladder paywall proxy, works on TS-x31P3
 docker pull ghcr.io/laroy-sh/stirling-qnap:latest    # Stirling PDF web tools, works on TS-x31P3
+docker pull ghcr.io/laroy-sh/vaultwarden-qnap:latest # Vaultwarden password server, works on TS-x31P3
 ```
 
 ## The problem
@@ -126,6 +127,22 @@ docker run -d --name stirling -p 8082:80 --restart unless-stopped \
 
 Web UI: `http://<nas-ip>:8082`.
 
+### Vaultwarden — `ghcr.io/laroy-sh/vaultwarden-qnap`
+
+[Vaultwarden](https://github.com/dani-garcia/vaultwarden), the Bitwarden-compatible password server (official Bitwarden server is amd64-only .NET/MSSQL and can never run on these devices). **Every official Vaultwarden variant fails on 32K pages**: the debian image's bookworm userland fails ELF alignment, current release binaries require glibc 2.39 (nothing page-safe ships newer than jammy's 2.35, so no rebase is possible), and the alpine static build is itself 4K-aligned (exit 139).
+
+This image is built **from unmodified source** with jammy's armhf cross-toolchain and `-Wl,-z,max-page-size=32768` — vendored OpenSSL and bundled SQLite statically linked, mimalloc disabled. The web vault is the official prebuilt release (arch-independent assets).
+
+```bash
+docker run -d --name vaultwarden -p 8084:80 --restart unless-stopped \
+  -v vw_data:/data \
+  -e DOMAIN=https://vault.example.com \
+  ghcr.io/laroy-sh/vaultwarden-qnap:latest
+```
+
+**HTTPS is required** for the web vault (browser Web Crypto refuses insecure origins) — either terminate TLS in a reverse proxy, or let vaultwarden serve it directly: put a cert/key in the data volume and add
+`-e ROCKET_PORT=443 -e 'ROCKET_TLS={certs="/data/tls/cert.pem",key="/data/tls/key.pem"}'` (self-signed works on a LAN — trust it once per device).
+
 ### Static web base — `ghcr.io/laroy-sh/qnap-web-base`
 
 `ubuntu:22.04` + nginx-light. For instantly serving static sites from the NAS:
@@ -188,7 +205,7 @@ Images are rebuilt **weekly** in CI against upstream `:latest` (plus on every pu
 
 ## Credits & licenses
 
-- Repo contents: MIT. The published images bundle unmodified upstream software under their own licenses: [Pi-hole](https://github.com/pi-hole/pi-hole) (EUPL-1.2; *Pi-hole is a registered trademark of Pi-hole LLC — this project is not affiliated with or endorsed by Pi-hole*), [Syncthing](https://github.com/syncthing/syncthing) (MPL-2.0), [ladder](https://github.com/everywall/ladder) (GPL-3.0, built from unmodified source), [Stirling-PDF](https://github.com/Stirling-Tools/Stirling-PDF) (MIT with proprietary portions — see upstream LICENSE; unmodified release JAR), nginx (BSD-2-Clause).
+- Repo contents: MIT. The published images bundle unmodified upstream software under their own licenses: [Pi-hole](https://github.com/pi-hole/pi-hole) (EUPL-1.2; *Pi-hole is a registered trademark of Pi-hole LLC — this project is not affiliated with or endorsed by Pi-hole*), [Syncthing](https://github.com/syncthing/syncthing) (MPL-2.0), [ladder](https://github.com/everywall/ladder) (GPL-3.0, built from unmodified source), [Stirling-PDF](https://github.com/Stirling-Tools/Stirling-PDF) (MIT with proprietary portions — see upstream LICENSE; unmodified release JAR), [Vaultwarden](https://github.com/dani-garcia/vaultwarden) (AGPL-3.0, built from unmodified source; *not affiliated with or endorsed by Bitwarden, Inc.*), nginx (BSD-2-Clause).
 - [javiocu/pihole-qnap-32k](https://github.com/javiocu/pihole-qnap-32k) — prior art that identified the 32K page-size root cause for Pi-hole v6 on these devices.
 - [albertogeniola/homeassistant-qnap-32k](https://hub.docker.com/r/albertogeniola/homeassistant-qnap-32k) — Home Assistant fixed for the same 32K-page QNAP family; use it if you need HA on these devices.
 - QNAP's [container debugging KB article](https://www.qnap.com/en/how-to/tutorial/article/how-to-debug-and-fix-common-container-issues-in-container-station) documenting the 4K→32K page change.
