@@ -149,6 +149,16 @@ Some upstream images need no rebase — worth knowing before you fix what isn't 
 
   Web UI: `http://<nas-ip>:8083`.
 
+- **[Uptime Kuma](https://github.com/louislam/uptime-kuma)** (`louislam/uptime-kuma:1`, self-hosted uptime monitoring): publishes `linux/arm/v7` on a Debian **buster** base (old enough to be page-safe), and its native sqlite module works on 32K pages. Verified unmodified on a TS-431P3 (Node 18):
+
+  ```bash
+  docker run -d --name kuma -p 3001:3001 --restart unless-stopped \
+    -v kuma_data:/app/data \
+    louislam/uptime-kuma:1
+  ```
+
+  Web UI: `http://<nas-ip>:3001`.
+
 ## Fix any other image yourself
 
 1. **Check the architecture**: `docker manifest inspect <image>` must list `linux/arm/v7` (or v6).
