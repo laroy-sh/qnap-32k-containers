@@ -135,6 +135,20 @@ FROM ghcr.io/laroy-sh/qnap-web-base:latest
 COPY . /var/www/html/
 ```
 
+## Works without fixing
+
+Some upstream images need no rebase — worth knowing before you fix what isn't broken:
+
+- **[Dozzle](https://github.com/amir20/dozzle)** (`amir20/dozzle`, real-time Docker log viewer): a single static Go binary `FROM scratch` — no userland to break — and upstream publishes `linux/arm/v7`. Verified unmodified on a TS-431P3 (v10.6.7):
+
+  ```bash
+  docker run -d --name dozzle -p 8083:8080 --restart unless-stopped \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    amir20/dozzle:latest
+  ```
+
+  Web UI: `http://<nas-ip>:8083`.
+
 ## Fix any other image yourself
 
 1. **Check the architecture**: `docker manifest inspect <image>` must list `linux/arm/v7` (or v6).
