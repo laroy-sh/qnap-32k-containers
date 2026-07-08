@@ -31,6 +31,9 @@ jobs:
           - image: ladder-qnap
             ghcr_name: ladder-qnap
             version_from: ''   # upstream has no arm/v7 image to read a version label from
+          - image: stirling-qnap
+            ghcr_name: stirling-qnap
+            version_from: ''   # release pinned in the Dockerfile (last Java-17 target, see comments there)
     steps:
       - uses: actions/checkout@v4
 

@@ -6,6 +6,7 @@
 docker pull ghcr.io/laroy-sh/pihole-qnap:latest      # Pi-hole v6, works on TS-x31P3
 docker pull ghcr.io/laroy-sh/syncthing-qnap:latest   # Syncthing, works on TS-x31P3
 docker pull ghcr.io/laroy-sh/ladder-qnap:latest      # ladder paywall proxy, works on TS-x31P3
+docker pull ghcr.io/laroy-sh/stirling-qnap:latest    # Stirling PDF web tools, works on TS-x31P3
 ```
 
 ## The problem
@@ -106,6 +107,25 @@ docker run -d --name ladder -p 8081:8080 --restart unless-stopped \
 
 Open `http://<nas-ip>:8081` and paste an article URL, or prefix directly: `http://<nas-ip>:8081/https://<article-url>`. All upstream env vars work (`PORT`, `RULESET`, `USERPASS`, `ALLOWED_DOMAINS`, …). Note: the optional FlareSolverr companion (Cloudflare bypass) is amd64/arm64-only and cannot run on these devices — point `FLARESOLVERR_HOST` at another machine if you need it.
 
+### Stirling PDF — `ghcr.io/laroy-sh/stirling-qnap`
+
+[Stirling-PDF](https://github.com/Stirling-Tools/Stirling-PDF), a self-hosted web app for PDF manipulation (merge, split, rotate, compress, sign, …). Upstream publishes **no `linux/arm/v7` image**, but the release ships an arch-independent JAR with the web UI embedded, so this image is just `ubuntu:22.04` + jammy's armhf OpenJDK 21 + that JAR.
+
+Two quirks worth knowing (details in the Dockerfile):
+
+- **Pinned to v2.5.3**, the last release targeting Java 17. Stirling ≥ v2.6 requires Java 25, and jammy's `openjdk-25` armhf build is Zero VM (interpreter-only, unusably slow on a Cortex-A15) — `openjdk-21` is a real JIT Server VM. Starts in ~60 s on a TS-431P3.
+- Use `Stirling-PDF.jar`, **not** `Stirling-PDF-server.jar` — the latter is API-only and serves no web UI.
+
+Ultra-lite: no Tesseract/LibreOffice, so OCR and Office conversions are unavailable; `apt-get install` them into the image if needed.
+
+```bash
+docker run -d --name stirling -p 8082:80 --restart unless-stopped \
+  -v stirling_configs:/configs \
+  ghcr.io/laroy-sh/stirling-qnap:latest
+```
+
+Web UI: `http://<nas-ip>:8082`.
+
 ### Static web base — `ghcr.io/laroy-sh/qnap-web-base`
 
 `ubuntu:22.04` + nginx-light. For instantly serving static sites from the NAS:
@@ -144,7 +164,7 @@ Images are rebuilt **weekly** in CI against upstream `:latest` (plus on every pu
 
 ## Credits & licenses
 
-- Repo contents: MIT. The published images bundle unmodified upstream software under their own licenses: [Pi-hole](https://github.com/pi-hole/pi-hole) (EUPL-1.2; *Pi-hole is a registered trademark of Pi-hole LLC — this project is not affiliated with or endorsed by Pi-hole*), [Syncthing](https://github.com/syncthing/syncthing) (MPL-2.0), [ladder](https://github.com/everywall/ladder) (GPL-3.0, built from unmodified source), nginx (BSD-2-Clause).
+- Repo contents: MIT. The published images bundle unmodified upstream software under their own licenses: [Pi-hole](https://github.com/pi-hole/pi-hole) (EUPL-1.2; *Pi-hole is a registered trademark of Pi-hole LLC — this project is not affiliated with or endorsed by Pi-hole*), [Syncthing](https://github.com/syncthing/syncthing) (MPL-2.0), [ladder](https://github.com/everywall/ladder) (GPL-3.0, built from unmodified source), [Stirling-PDF](https://github.com/Stirling-Tools/Stirling-PDF) (MIT with proprietary portions — see upstream LICENSE; unmodified release JAR), nginx (BSD-2-Clause).
 - [javiocu/pihole-qnap-32k](https://github.com/javiocu/pihole-qnap-32k) — prior art that identified the 32K page-size root cause for Pi-hole v6 on these devices.
 - [albertogeniola/homeassistant-qnap-32k](https://hub.docker.com/r/albertogeniola/homeassistant-qnap-32k) — Home Assistant fixed for the same 32K-page QNAP family; use it if you need HA on these devices.
 - QNAP's [container debugging KB article](https://www.qnap.com/en/how-to/tutorial/article/how-to-debug-and-fix-common-container-issues-in-container-station) documenting the 4K→32K page change.
