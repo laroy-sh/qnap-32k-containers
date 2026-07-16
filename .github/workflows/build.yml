@@ -38,7 +38,7 @@ jobs:
             ghcr_name: vaultwarden-qnap
             version_from: ''   # release pinned via VW_VERSION in the Dockerfile (built from source)
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: docker/setup-qemu-action@v3
         with:
