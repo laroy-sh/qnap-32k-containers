@@ -21,7 +21,7 @@
 
 ARG STIRLING_VERSION=v2.5.3
 
-FROM ubuntu:22.04
+FROM ubuntu:26.04
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openjdk-21-jre-headless ca-certificates curl fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
