@@ -19,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 \
     go build -ldflags="-s -w -X ladder/handlers.version=$(git rev-parse --short HEAD)" \
     -o ladder cmd/main.go
 
-FROM ubuntu:22.04
+FROM ubuntu:26.04
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
