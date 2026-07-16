@@ -10,7 +10,7 @@
 
 FROM pihole/pihole:latest AS official
 
-FROM ubuntu:22.04
+FROM ubuntu:26.04
 
 LABEL org.opencontainers.image.source="https://github.com/laroy-sh/qnap-32k-containers"
 
