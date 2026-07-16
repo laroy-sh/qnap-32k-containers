@@ -1,5 +1,5 @@
 # Reusable static-web base for the qnap-run skill (32K-page-safe).
-FROM ubuntu:22.04
+FROM ubuntu:26.04
 
 LABEL org.opencontainers.image.source="https://github.com/laroy-sh/qnap-32k-containers"
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends nginx-light \
