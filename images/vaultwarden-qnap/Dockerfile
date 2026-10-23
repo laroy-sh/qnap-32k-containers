@@ -15,7 +15,7 @@ ARG VW_VERSION=1.36.0
 
 FROM --platform=linux/amd64 docker.io/vaultwarden/web-vault:v2026.4.1 AS web_vault
 
-FROM --platform=$BUILDPLATFORM ubuntu:22.04 AS build
+FROM --platform=$BUILDPLATFORM ubuntu:26.04 AS build
 ARG VW_VERSION
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates curl git build-essential gcc-arm-linux-gnueabihf libc6-dev-armhf-cross perl pkg-config \
@@ -32,7 +32,7 @@ ENV CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc \
     RUSTFLAGS="-C link-arg=-Wl,-z,max-page-size=32768"
 RUN cargo build --release --target armv7-unknown-linux-gnueabihf --features sqlite,vendored_openssl
 
-FROM ubuntu:22.04
+FROM ubuntu:26.04
 LABEL org.opencontainers.image.source="https://github.com/laroy-sh/qnap-32k-containers"
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates curl openssl \
